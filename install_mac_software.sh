@@ -6,32 +6,74 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ZSHRC="$SCRIPT_DIR/zshrc"
 OH_MY_ZSH_DIR="$HOME/.oh-my-zsh"
 
+BREW_TAPS=(
+  aquasecurity/trivy
+  bufbuild/buf
+)
+
 BREW_FORMULAE=(
-  bat
-  ca-certificates
+  # Containers & Kubernetes
   colima
   docker
   docker-buildx
-  docker-completion
   docker-compose
-  go
   helm
-  kubernetes-cli
-  libgit2
-  libpcap
-  libssh2
-  lima
   minikube
+  stern
+
+  # Languages & Runtimes
+  go-air
+  protobuf
+
+  # Dev tools
+  act
+  bufbuild/buf/buf
+  graphviz
+  lazygit
+  neovim
+  shc
+  tmux
+  watch
+
+  # Databases
+  postgresql@14
+  redis
+
+  # Security
+  trivy
+  trufflehog
+
+  # Networking
+  httpie
+  k6
   ngrep
-  oniguruma
-  openssl@3
-  pcre2
+  oha
+  sshuttle
+  telnet
+
+  # Shell enhancements
+  bat
+  fzf
   ripgrep
+  zoxide
   zsh-autosuggestions
+  zsh-completions
+  zsh-history-substring-search
   zsh-syntax-highlighting
+
+  # AI
+  gemini-cli
 )
 
-BREW_CASKS=()
+BREW_CASKS=(
+  font-jetbrains-mono-nerd-font
+  maccy
+  ngrok
+)
+
+log() {
+  printf "[install-mac] %s\n" "$*"
+}
 
 ensure_git_repo() {
   local target_path="$1"
@@ -54,10 +96,6 @@ ensure_git_repo() {
 
   log "Cloning $description from $repo_url"
   git clone "$repo_url" "$target_path"
-}
-
-log() {
-  printf "[install-mac] %s\n" "$*"
 }
 
 ensure_xcode_cli() {
@@ -91,6 +129,18 @@ ensure_homebrew() {
   fi
 }
 
+install_brew_taps() {
+  for tap in "${BREW_TAPS[@]}"; do
+    if brew tap | grep -qx "$tap"; then
+      log "Tap '$tap' already added"
+      continue
+    fi
+
+    log "Adding tap '$tap'"
+    brew tap "$tap"
+  done
+}
+
 install_brew_packages() {
   log "Updating Homebrew"
   brew update
@@ -118,24 +168,6 @@ install_brew_packages() {
   fi
 }
 
-install_zshrc() {
-  if [[ ! -f "$REPO_ZSHRC" ]]; then
-    log "Repository zshrc not found at '$REPO_ZSHRC'"
-    return
-  fi
-
-  local target="$HOME/.zshrc"
-
-  if [[ -f "$target" && ! -L "$target" ]]; then
-    local backup="${target}.backup.$(date +%Y%m%d%H%M%S)"
-    log "Backing up existing .zshrc to '$backup'"
-    cp "$target" "$backup"
-  fi
-
-  log "Copying repository zshrc to '$target'"
-  cp "$REPO_ZSHRC" "$target"
-}
-
 install_oh_my_zsh_dependencies() {
   if git -C "$OH_MY_ZSH_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     log "Oh My Zsh already installed"
@@ -156,11 +188,54 @@ install_oh_my_zsh_dependencies() {
   ensure_git_repo "$syntax_dir" https://github.com/zsh-users/zsh-syntax-highlighting.git "zsh-syntax-highlighting plugin"
 }
 
+install_nvm() {
+  local nvm_dir="${NVM_DIR:-$HOME/.nvm}"
+
+  if [[ -d "$nvm_dir" ]]; then
+    log "NVM already installed at '$nvm_dir'"
+    return
+  fi
+
+  log "Installing NVM"
+  PROFILE=/dev/null bash -c "$(curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh)"
+}
+
+install_gobrew() {
+  if [[ -f "$HOME/.gobrew/bin/gobrew" ]]; then
+    log "GoBrew already installed"
+    return
+  fi
+
+  log "Installing GoBrew"
+  curl -fsSL https://raw.githubusercontent.com/kevincobain2000/gobrew/master/git.io.sh | sh
+}
+
+install_zshrc() {
+  if [[ ! -f "$REPO_ZSHRC" ]]; then
+    log "Repository zshrc not found at '$REPO_ZSHRC'"
+    return
+  fi
+
+  local target="$HOME/.zshrc"
+
+  if [[ -f "$target" && ! -L "$target" ]]; then
+    local backup="${target}.backup.$(date +%Y%m%d%H%M%S)"
+    log "Backing up existing .zshrc to '$backup'"
+    cp "$target" "$backup"
+  fi
+
+  log "Copying repository zshrc to '$target'"
+  cp "$REPO_ZSHRC" "$target"
+}
+
 main() {
   ensure_xcode_cli
   ensure_homebrew
+  install_brew_taps
   install_brew_packages
   install_oh_my_zsh_dependencies
+  install_nvm
+  install_gobrew
   install_zshrc
 
   if [[ -f "$HOME/.zshrc" ]]; then
@@ -177,4 +252,3 @@ main() {
 }
 
 main "$@"
-
