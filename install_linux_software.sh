@@ -14,8 +14,10 @@ APT_PACKAGES=(
   git
   graphviz
   httpie
+  jq
   neovim
   ngrep
+  nodejs
   postgresql
   protobuf-compiler
   redis-server
@@ -38,8 +40,10 @@ DNF_PACKAGES=(
   git
   graphviz
   httpie
+  jq
   neovim
   ngrep
+  nodejs
   postgresql-server
   protobuf-compiler
   redis
@@ -203,6 +207,43 @@ install_kubernetes_tools() {
     sudo install -o root -g root -m 0755 /tmp/stern /usr/local/bin/stern
     rm -f /tmp/stern /tmp/stern.tar.gz
   fi
+
+  if command -v kubelogin >/dev/null 2>&1; then
+    log "kubelogin already installed"
+  else
+    log "Installing kubelogin"
+    local kl_ver
+    kl_ver="$(curl -fsSL https://api.github.com/repos/Azure/kubelogin/releases/latest | grep tag_name | cut -d '"' -f4)"
+    curl -fsSLo /tmp/kubelogin.zip \
+      "https://github.com/Azure/kubelogin/releases/download/${kl_ver}/kubelogin-linux-${GO_ARCH}.zip"
+    unzip -o /tmp/kubelogin.zip -d /tmp/kubelogin
+    sudo install -o root -g root -m 0755 /tmp/kubelogin/bin/linux_${GO_ARCH}/kubelogin /usr/local/bin/kubelogin
+    rm -rf /tmp/kubelogin /tmp/kubelogin.zip
+  fi
+
+  if command -v kubeseal >/dev/null 2>&1; then
+    log "kubeseal already installed"
+  else
+    log "Installing kubeseal"
+    local ks_ver
+    ks_ver="$(curl -fsSL https://api.github.com/repos/bitnami-labs/sealed-secrets/releases/latest | grep tag_name | cut -d '"' -f4)"
+    curl -fsSLo /tmp/kubeseal.tar.gz \
+      "https://github.com/bitnami-labs/sealed-secrets/releases/download/${ks_ver}/kubeseal-${ks_ver#v}-linux-${GO_ARCH}.tar.gz"
+    tar -xzf /tmp/kubeseal.tar.gz -C /tmp kubeseal
+    sudo install -o root -g root -m 0755 /tmp/kubeseal /usr/local/bin/kubeseal
+    rm -f /tmp/kubeseal /tmp/kubeseal.tar.gz
+  fi
+
+  if command -v kubetail >/dev/null 2>&1; then
+    log "kubetail already installed"
+  else
+    log "Installing kubetail"
+    local kt_ver
+    kt_ver="$(curl -fsSL https://api.github.com/repos/johanhaleby/kubetail/releases/latest | grep tag_name | cut -d '"' -f4)"
+    curl -fsSLo /tmp/kubetail "https://raw.githubusercontent.com/johanhaleby/kubetail/${kt_ver}/kubetail"
+    sudo install -o root -g root -m 0755 /tmp/kubetail /usr/local/bin/kubetail
+    rm -f /tmp/kubetail
+  fi
 }
 
 install_security_tools() {
@@ -305,6 +346,26 @@ install_load_testing_tools() {
   fi
 }
 
+install_azure_cli() {
+  if command -v az >/dev/null 2>&1; then
+    log "Azure CLI already installed"
+    return
+  fi
+
+  log "Installing Azure CLI"
+  curl -fsSL https://aka.ms/InstallAzureCLIDeb | sudo bash
+}
+
+install_mise() {
+  if command -v mise >/dev/null 2>&1; then
+    log "mise already installed"
+    return
+  fi
+
+  log "Installing mise"
+  curl https://mise.run | sh
+}
+
 install_oh_my_zsh_dependencies() {
   if git -C "$OH_MY_ZSH_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     log "Oh My Zsh already installed"
@@ -390,6 +451,8 @@ main() {
   install_kubernetes_tools
   install_security_tools
   install_load_testing_tools
+  install_azure_cli
+  install_mise
   install_oh_my_zsh_dependencies
   install_nvm
   install_gobrew

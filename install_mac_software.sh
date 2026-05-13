@@ -18,17 +18,24 @@ BREW_FORMULAE=(
   docker-buildx
   docker-compose
   helm
+  kubelogin
+  kubernetes-cli
+  kubeseal
+  kubetail
   minikube
   stern
 
   # Languages & Runtimes
   go-air
+  mise
+  node
   protobuf
 
   # Dev tools
   act
   bufbuild/buf/buf
   graphviz
+  jq
   lazygit
   neovim
   shc
@@ -43,7 +50,8 @@ BREW_FORMULAE=(
   trivy
   trufflehog
 
-  # Networking
+  # Cloud & Networking
+  azure-cli
   httpie
   k6
   ngrep
@@ -66,8 +74,11 @@ BREW_FORMULAE=(
 )
 
 BREW_CASKS=(
+  claude-code
   font-jetbrains-mono-nerd-font
+  ghostty
   maccy
+  microsoft-outlook
   ngrok
 )
 

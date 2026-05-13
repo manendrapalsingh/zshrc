@@ -64,6 +64,11 @@ if [[ -f "$HOME/.gobrew/bin/gobrew" ]]; then
   eval "$($HOME/.gobrew/bin/gobrew shellenv)"
 fi
 
+# Mise (polyglot runtime manager)
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate zsh)"
+fi
+
 # NVM (Node Version Manager)
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
