@@ -28,13 +28,17 @@ export ZSH="$HOME/.oh-my-zsh"
 
 ZSH_THEME="powerlevel10k/powerlevel10k"
 
-plugins=(
-  git
-  zsh-autosuggestions
-  zsh-syntax-highlighting
-  zsh-completions
-  zsh-history-substring-search
-)
+plugins=(git)
+
+# Only enable optional plugins that are actually installed. This keeps startup
+# clean when the same dotfile is used before the bootstrap script has run.
+for plugin in \
+  zsh-autosuggestions \
+  zsh-syntax-highlighting \
+  zsh-completions \
+  zsh-history-substring-search; do
+  [[ -d "${ZSH_CUSTOM:-$ZSH/custom}/plugins/$plugin" ]] && plugins+=("$plugin")
+done
 
 source $ZSH/oh-my-zsh.sh
 
@@ -50,18 +54,14 @@ export GOPATH=$HOME/go
 export PATH=$PATH:$GOPATH/bin
 
 # ----------------------------------
-# Autosuggestions & Syntax Highlighting
-# ----------------------------------
-source ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-source ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-
-# ----------------------------------
 # Version Managers
 # ----------------------------------
 
-# GoBrew
-if [[ -f "$HOME/.gobrew/bin/gobrew" ]]; then
-  eval "$($HOME/.gobrew/bin/gobrew shellenv)"
+# GoBrew does not provide a `shellenv` command. Add its documented paths
+# directly and let `gobrew use` manage the `current` symlink.
+if [[ -d "$HOME/.gobrew" ]]; then
+  export PATH="$HOME/.gobrew/current/bin:$HOME/.gobrew/bin:$PATH"
+  export GOPATH="$HOME/.gobrew/current/go"
 fi
 
 # Mise (polyglot runtime manager)
@@ -72,7 +72,7 @@ fi
 # NVM (Node Version Manager)
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+[[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
 
 # ----------------------------------
 # fzf & zoxide
@@ -95,8 +95,6 @@ fi
 # ----------------------------------
 # Terminal Enhancements
 # ----------------------------------
-autoload -Uz compinit && compinit
-
 bindkey "^[[A" history-search-backward
 bindkey "^[[B" history-search-forward
 

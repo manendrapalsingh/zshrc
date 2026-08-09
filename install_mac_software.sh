@@ -193,10 +193,14 @@ install_oh_my_zsh_dependencies() {
   local theme_dir="$zsh_custom/themes/powerlevel10k"
   local autosuggest_dir="$zsh_custom/plugins/zsh-autosuggestions"
   local syntax_dir="$zsh_custom/plugins/zsh-syntax-highlighting"
+  local completions_dir="$zsh_custom/plugins/zsh-completions"
+  local history_search_dir="$zsh_custom/plugins/zsh-history-substring-search"
 
   ensure_git_repo "$theme_dir" https://github.com/romkatv/powerlevel10k.git "Powerlevel10k theme"
   ensure_git_repo "$autosuggest_dir" https://github.com/zsh-users/zsh-autosuggestions.git "zsh-autosuggestions plugin"
   ensure_git_repo "$syntax_dir" https://github.com/zsh-users/zsh-syntax-highlighting.git "zsh-syntax-highlighting plugin"
+  ensure_git_repo "$completions_dir" https://github.com/zsh-users/zsh-completions.git "zsh-completions plugin"
+  ensure_git_repo "$history_search_dir" https://github.com/zsh-users/zsh-history-substring-search.git "zsh-history-substring-search plugin"
 }
 
 install_nvm() {
